@@ -24,10 +24,10 @@ router.get("/", async (req: Request, res: Response) => {
         const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=reviews&key=${apiKey}`;
         const response = await axios.get(url);
         
-        console.log("Google API Response:", response.data);  // Log the response to check the data structure
+   
 
         const reviews: Review[] = response.data.result?.reviews || [];
-        console.log("Reviews fetched:", reviews);  // Log reviews to ensure it's being correctly parsed
+       
 
         res.json(reviews);
     } catch (error) {
