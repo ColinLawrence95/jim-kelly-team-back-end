@@ -24,13 +24,14 @@ interface DLAResponse<T = any> {
 router.get("/", async (req, res) => {
   try {
     const agentNumbers = process.env.AGENT_NUMBERS?.split(",") || [];
+    
     const filterQuery = agentNumbers.map((agent) => `ListAgentKey eq '${agent}'`).join(" or ");
 
  
     const propertyResponse = await axios.get<DLAResponse<Property>>(
       `${AMPLIFY_ODS_URL_PROPERTY}?$filter=${encodeURIComponent(
         filterQuery
-      )}&$select=ListingKey,ListPrice,UnparsedAddress,PublicRemarks,ListAgentFullName,MlsStatus`,
+      )}&$select=ListingKey,ListPrice,UnparsedAddress,PublicRemarks,ListAgentFullName,MlsStatus,ListOfficeKey`,
       {
         headers: {
           Authorization: `Bearer ${process.env.DLA_TOKEN}`,
