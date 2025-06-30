@@ -14,6 +14,7 @@ interface Property {
   PublicRemarks: string;
   UnparsedAddress: string;
   MediaURL?: string; 
+  ListingContractDate?: string; 
 }
 
 interface DLAResponse<T = any> {
@@ -31,7 +32,7 @@ router.get("/", async (req, res) => {
     const propertyResponse = await axios.get<DLAResponse<Property>>(
       `${AMPLIFY_ODS_URL_PROPERTY}?$filter=${encodeURIComponent(
         filterQuery
-      )}&$select=ListingKey,ListPrice,UnparsedAddress,PublicRemarks,ListAgentFullName,MlsStatus,ListOfficeKey`,
+      )}&$select=ListingKey,ListPrice,UnparsedAddress,PublicRemarks,ListAgentFullName,MlsStatus,ListOfficeKey,ListingContractDate`,
       {
         headers: {
           Authorization: `Bearer ${process.env.DLA_TOKEN}`,
