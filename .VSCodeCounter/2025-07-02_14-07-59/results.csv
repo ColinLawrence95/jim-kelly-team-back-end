@@ -1,0 +1,8 @@
+"filename", "language", "JSON", "JSON with Comments", "TypeScript", "comment", "blank", "total"
+"/home/colin/code/jim-kelly-team-back-end/package-lock.json", "JSON", 1625, 0, 0, 0, 1, 1626
+"/home/colin/code/jim-kelly-team-back-end/package.json", "JSON", 27, 0, 0, 0, 3, 30
+"/home/colin/code/jim-kelly-team-back-end/src/routes/listings.ts", "TypeScript", 0, 0, 71, 0, 9, 80
+"/home/colin/code/jim-kelly-team-back-end/src/routes/reviews.ts", "TypeScript", 0, 0, 31, 0, 9, 40
+"/home/colin/code/jim-kelly-team-back-end/src/server.ts", "TypeScript", 0, 0, 13, 0, 7, 20
+"/home/colin/code/jim-kelly-team-back-end/tsconfig.json", "JSON with Comments", 0, 13, 0, 92, 9, 114
+"Total", "-", 1652, 13, 115, 92, 38, 1910
