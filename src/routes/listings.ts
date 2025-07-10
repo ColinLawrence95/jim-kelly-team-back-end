@@ -1,11 +1,14 @@
 import express from "express";
 import axios from "axios";
+
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {
     S3Client,
     PutObjectCommand,
     GetObjectCommand,
     HeadObjectCommand,
 } from "@aws-sdk/client-s3";
+
 import path from "path";
 
 const router = express.Router();
@@ -38,13 +41,12 @@ interface DLAResponse<T = any> {
 interface MediaItem {
     MediaURL: string;
 }
-
 async function downloadImage(listingKey: string, mediaUrl: string): Promise<string> {
     const extension = path.extname(mediaUrl) || ".jpg";
     const filename = `${listingKey}${extension}`;
 
     try {
-        // ✅ Check if image already exists in R2
+        // Check if image already exists in R2
         await s3Client.send(
             new HeadObjectCommand({
                 Bucket: process.env.R2_BUCKET,
@@ -52,22 +54,29 @@ async function downloadImage(listingKey: string, mediaUrl: string): Promise<stri
             })
         );
 
-        // If it exists, return the public URL
-        return `https://${process.env.R2_ENDPOINT}/${process.env.R2_BUCKET}/${filename}`;
+        // If exists, just generate and return a signed URL
+        const signedUrl = await getSignedUrl(
+            s3Client,
+            new GetObjectCommand({
+                Bucket: process.env.R2_BUCKET,
+                Key: filename,
+            }),
+            { expiresIn: 3600 }
+        );
+        return signedUrl;
     } catch (headErr: any) {
         if (headErr?.$metadata?.httpStatusCode !== 404) {
             console.error(`Error checking existence of image for ${listingKey}`, headErr);
             return "";
         }
+        // If not found (404), continue to download and upload
     }
 
-    // If not found, download and upload
+    // If not found, download the image and upload
     try {
         const response = await axios.get(mediaUrl, {
             responseType: "arraybuffer",
-            headers: {
-                Authorization: `Bearer ${process.env.DLA_TOKEN}`,
-            },
+            headers: { Authorization: `Bearer ${process.env.DLA_TOKEN}` },
         });
 
         await s3Client.send(
@@ -79,7 +88,17 @@ async function downloadImage(listingKey: string, mediaUrl: string): Promise<stri
             })
         );
 
-        return `https://${process.env.R2_BUCKET}.${process.env.R2_ENDPOINT}/${filename}`;
+        // Generate signed URL
+        const signedUrl = await getSignedUrl(
+            s3Client,
+            new GetObjectCommand({
+                Bucket: process.env.R2_BUCKET,
+                Key: filename,
+            }),
+            { expiresIn: 3600 }
+        );
+
+        return signedUrl;
     } catch (err) {
         console.error(`Failed to download/upload image for ListingKey ${listingKey}`, err);
         return "";
