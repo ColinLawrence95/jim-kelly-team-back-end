@@ -1,29 +1,32 @@
 {
-  "name": "jim-kelly-team-back-end",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "dev": "nodemon --exec ts-node src/server.ts",
-    "start": "tsc && node dist/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@types/cors": "^2.8.18",
-    "@types/express": "^5.0.2",
-    "axios": "^1.9.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
-    "express": "^5.1.0",
-    "node-cache": "^5.1.2",
-    "nodemon": "^3.1.10",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
-  },
-  "devDependencies": {
-    "@types/node": "^24.0.12"
-  }
+    "name": "jim-kelly-team-back-end",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "dev": "nodemon --exec ts-node src/server.ts",
+        "start": "node dist/server.js",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "tsc"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "@aws-sdk/client-s3": "^3.844.0",
+        "@aws-sdk/s3-request-presigner": "^3.844.0",
+        "@types/cors": "^2.8.18",
+        "@types/express": "^5.0.2",
+        "axios": "^1.9.0",
+        "cors": "^2.8.5",
+        "dotenv": "^16.5.0",
+        "express": "^5.1.0",
+        "node-cache": "^5.1.2",
+        "nodemon": "^3.1.10",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.8.3"
+    },
+    "devDependencies": {
+        "@types/node": "^24.0.12"
+    }
 }
