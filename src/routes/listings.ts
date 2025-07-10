@@ -73,7 +73,7 @@ async function downloadImage(listingKey: string, mediaUrl: string): Promise<stri
   }
 }
 
-router.get("/", async (簽, res) => {
+router.get("/", async (req, res) => {
   try {
     const agentNumbers = process.env.AGENT_NUMBERS?.split(",") || [];
     const filterQuery = agentNumbers.map((agent) => `ListAgentKey eq '${agent}'`).join(" or ");
