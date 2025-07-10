@@ -10,7 +10,20 @@ import listingsRouter from "./routes/listings";
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = ["https://thejimkellyteam.com", "http://localhost:3000"];
+
+app.use(
+    cors({
+        origin: function (origin, callback) {
+            if (!origin || allowedOrigins.includes(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error("Not allowed by CORS"));
+            }
+        },
+        credentials: true,
+    })
+);
 app.use(express.json());
 
 app.use("/api/reviews", reviewsRouter);
