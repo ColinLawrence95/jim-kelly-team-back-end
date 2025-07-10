@@ -2,9 +2,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-import cors from "cors";
-import path from "path";
 
+import path from "path";
+const cors = require("cors");
 import reviewsRouter from "./routes/reviews";
 import listingsRouter from "./routes/listings";
 
