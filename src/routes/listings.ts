@@ -1,7 +1,11 @@
 import express from "express";
 import axios from "axios";
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+} from "@aws-sdk/client-s3";
 import path from "path";
 
 const router = express.Router();
@@ -36,17 +40,36 @@ interface MediaItem {
 }
 
 async function downloadImage(listingKey: string, mediaUrl: string): Promise<string> {
-  try {
-    const extension = path.extname(mediaUrl) || ".jpg";
-    const filename = `${listingKey}${extension}`;
+  const extension = path.extname(mediaUrl) || ".jpg";
+  const filename = `${listingKey}${extension}`;
 
-    // Download image
+  try {
+    // ✅ Check if image already exists in R2
+    await s3Client.send(
+      new HeadObjectCommand({
+        Bucket: process.env.R2_BUCKET,
+        Key: filename,
+      })
+    );
+
+    // If it exists, return the public URL
+    return `https://${process.env.R2_BUCKET}.${process.env.R2_ENDPOINT}/${filename}`;
+  } catch (headErr: any) {
+    if (headErr?.$metadata?.httpStatusCode !== 404) {
+      console.error(`Error checking existence of image for ${listingKey}`, headErr);
+      return "";
+    }
+  }
+
+  // If not found, download and upload
+  try {
     const response = await axios.get(mediaUrl, {
       responseType: "arraybuffer",
-      headers: { Authorization: `Bearer ${process.env.DLA_TOKEN}` },
+      headers: {
+        Authorization: `Bearer ${process.env.DLA_TOKEN}`,
+      },
     });
 
-    // Upload to R2
     await s3Client.send(
       new PutObjectCommand({
         Bucket: process.env.R2_BUCKET,
@@ -56,17 +79,7 @@ async function downloadImage(listingKey: string, mediaUrl: string): Promise<stri
       })
     );
 
-    // Generate signed URL (valid for 1 hour)
-    const signedUrl = await getSignedUrl(
-      s3Client,
-      new GetObjectCommand({
-        Bucket: process.env.R2_BUCKET,
-        Key: filename,
-      }),
-      { expiresIn: 3600 } // 1 hour expiry
-    );
-
-    return signedUrl;
+    return `https://${process.env.R2_BUCKET}.${process.env.R2_ENDPOINT}/${filename}`;
   } catch (err) {
     console.error(`Failed to download/upload image for ListingKey ${listingKey}`, err);
     return "";
@@ -76,7 +89,9 @@ async function downloadImage(listingKey: string, mediaUrl: string): Promise<stri
 router.get("/", async (req, res) => {
   try {
     const agentNumbers = process.env.AGENT_NUMBERS?.split(",") || [];
-    const filterQuery = agentNumbers.map((agent) => `ListAgentKey eq '${agent}'`).join(" or ");
+    const filterQuery = agentNumbers
+      .map((agent) => `ListAgentKey eq '${agent}'`)
+      .join(" or ");
 
     const propertyResponse = await axios.get<DLAResponse<Property>>(
       `${process.env.AMPLIFY_ODS_URL_PROPERTY}?$filter=${encodeURIComponent(
@@ -107,7 +122,9 @@ router.get("/", async (req, res) => {
           });
 
           const firstMedia = mediaResponse.data.value[0];
-          property.MediaURL = firstMedia?.MediaURL ? await downloadImage(property.ListingKey, firstMedia.MediaURL) : "";
+          property.MediaURL = firstMedia?.MediaURL
+            ? await downloadImage(property.ListingKey, firstMedia.MediaURL)
+            : "";
           property.ListingContractDate = property.ListingContractDate || "";
         } catch (mediaErr) {
           console.error(`Error fetching media for ListingKey ${property.ListingKey}`, mediaErr);
